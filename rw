@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+
+# rw - Heroku Review Apps CLI
+#
+# This script provides a simple interface to interact with Heroku Review Apps.
+# It allows you to run commands on the review app for the current branch, connect
+# to the Rails console, and view logs.
+#
+# Usage:
+#   rw <command> [args]
+#
+# Commands:
+#   console   Connect to Rails console
+#   logs      Show app logs
+#   run       Run a command on the app
+#   help      Show this help message
+#
+# Environment variables:
+#   HEROKU_REVIEW_APP_PREFIX  Prefix for review apps (default: review)
+#
+# Dependencies:
+#   - Heroku CLI (https://devcenter.heroku.com/articles/heroku-cli)
+#   - jq (https://stedolan.github.io/jq/)
+#
+
+set -e
+
+main() {
+    local cmd=$1
+    shift || true
+
+    if ! command -v heroku &>/dev/null; then
+        warn "Heroku CLI is not installed. Please install it from https://devcenter.heroku.com/articles/heroku-cli"
+        exit 1
+    fi
+
+    case "$cmd" in
+        console|c)
+            heroku_run bundle exec rails console
+            ;;
+        logs|l)
+            heroku_logs
+            ;;
+        run|r)
+            [[ $# -eq 0 ]] && debug "Usage: rw run <command>" && exit 1
+
+            heroku_run "$@"
+            ;;
+        help|h|"")
+            usage
+            ;;
+        *)
+            usage
+            ;;
+    esac
+}
+
+heroku_run() {
+    local app="$(heroku_review_app)"
+
+    [[ -z "$app" ]] && die "No app for the current branch."
+
+    heroku run --app "$app" "$@"
+}
+
+heroku_logs() {
+    local app="$(heroku_review_app)"
+
+    [[ -z "$app" ]] && die "No app for the current branch."
+
+    heroku logs --tail --app "$app"
+}
+
+
+heroku_review_app() {
+    local branch prefix pattern
+
+    branch=$(git branch --show-current | tr '[:upper:]' '[:lower:]')
+    prefix="${HEROKU_REVIEW_APP_PREFIX:-review}"
+    pattern="$prefix-$(echo "$branch" | cut -c1-15 | sed 's/\//-/g')"
+    
+    heroku apps --all --json | jq --arg pattern "$pattern" '.[] | select(.name | test($pattern; "i")) | .name' -r
+}
+
+debug() {
+    echo -e "\033[1m$*\033[0m"
+}
+
+warn() {
+    echo -e "\033[1;38;5;214m$*\033[0m" >&2
+}
+
+die() {
+    echo -e "\033[1;38;5;197m$*\033[0m" >&2
+    exit 1
+}
+
+usage() {
+    debug "rw - Heroku Review Apps CLI
+
+Usage:
+  rw <command> [args]
+
+Commands:
+  console   Connect to Rails console
+  logs      Show app logs
+  run       Run a command on the app
+  help      Show this help message
+"
+    exit 1
+}
+
+main "$@"
