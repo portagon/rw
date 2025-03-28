@@ -14,9 +14,18 @@ Installation
 ------------
 
 1. Ensure you have the necessary dependencies installed:
+
    - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
    - [jq](https://stedolan.github.io/jq/)
-2. Copy the script to a directory in your `$PATH` (e.g., `/usr/local/bin/`):
+
+2. If you have `make` installed, run the following:
+
+   ```sh
+   make install
+   ```
+
+3. If not, copy the executable to a directory in your `$PATH` (e.g., `/usr/local/bin/`):
+
    ```sh
    cp rw /usr/local/bin/
    chmod +x /usr/local/bin/rw
