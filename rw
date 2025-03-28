@@ -1,28 +1,5 @@
 #!/usr/bin/env bash
 
-# rw - Heroku Review Apps CLI
-#
-# This script provides a simple interface to interact with Heroku Review Apps.
-# It allows you to run commands on the review app for the current branch, connect
-# to the Rails console, and view logs.
-#
-# Usage:
-#   rw <command> [args]
-#
-# Commands:
-#   console   Connect to Rails console
-#   logs      Show app logs
-#   run       Run a command on the app
-#   help      Show this help message
-#
-# Environment variables:
-#   HEROKU_REVIEW_APP_PREFIX  Prefix for review apps (default: review)
-#
-# Dependencies:
-#   - Heroku CLI (https://devcenter.heroku.com/articles/heroku-cli)
-#   - jq (https://stedolan.github.io/jq/)
-#
-
 set -e
 
 main() {
